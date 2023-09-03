@@ -101,6 +101,7 @@ public:
     int Quantity;
     double Price;
     std::string status;
+    std::string transactiontime;
 };
 
 // Define a class for managing orders
@@ -130,58 +131,93 @@ public:
             if (order.Side == 1) {
                 // Buy order for Rose
                 roseBuyOrders.push_back(order);
-                std::sort(roseBuyOrders.begin(), roseBuyOrders.end(), [](const Order& a, const Order& b) {return a.Price < b.Price;});
+                std::sort(roseBuyOrders.begin(), roseBuyOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID < b.Order_ID;} return a.Price < b.Price;});
             } else if (order.Side == 2) {
                 // Sell order for Rose
                 roseSellOrders.push_back(order);
-                std::sort(roseSellOrders.begin(), roseSellOrders.end(), [](const Order& a, const Order& b) {return a.Price > b.Price;});
+                std::sort(roseSellOrders.begin(), roseSellOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID > b.Order_ID;} return a.Price > b.Price;});
             }
         }
         if(order.Instrument == "Tulip") {
             if (order.Side == 1) {
                 // Buy order for Tulip
                 tulipBuyOrders.push_back(order);
-                std::sort(tulipBuyOrders.begin(), tulipBuyOrders.end(), [](const Order& a, const Order& b) {return a.Price < b.Price;});
+                std::sort(tulipBuyOrders.begin(), tulipBuyOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID < b.Order_ID;} return a.Price < b.Price;});
             } else if (order.Side == 2) {
                 // Sell order for Tulip
                 tulipSellOrders.push_back(order);
-                std::sort(tulipSellOrders.begin(), tulipSellOrders.end(), [](const Order& a, const Order& b) {return a.Price > b.Price;});
+                std::sort(tulipSellOrders.begin(), tulipSellOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID > b.Order_ID;} return a.Price > b.Price;});
             }
         }
         if(order.Instrument == "Lavender") {
             if (order.Side == 1) {
                 // Buy order for Lavender
                 lavenderBuyOrders.push_back(order);
-                std::sort(lavenderBuyOrders.begin(), lavenderBuyOrders.end(), [](const Order& a, const Order& b) {return a.Price < b.Price;});
+                std::sort(lavenderBuyOrders.begin(), lavenderBuyOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID < b.Order_ID;} return a.Price < b.Price;});
             } else if (order.Side == 2) {
                 // Sell order for Lavender
                 lavenderSellOrders.push_back(order);
-                std::sort(lavenderSellOrders.begin(), lavenderSellOrders.end(), [](const Order& a, const Order& b) {return a.Price > b.Price;});
+                std::sort(lavenderSellOrders.begin(), lavenderSellOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID > b.Order_ID;} return a.Price > b.Price;});
             }
         }
         if(order.Instrument == "Lotus") {
             if (order.Side == 1) {
                 // Buy order for Lotus
                 lotusBuyOrders.push_back(order);
-                std::sort(lotusBuyOrders.begin(), lotusBuyOrders.end(), [](const Order& a, const Order& b) {return a.Price < b.Price;});
+                std::sort(lotusBuyOrders.begin(), lotusBuyOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID < b.Order_ID;} return a.Price < b.Price;});
             } else if (order.Side == 2) {
                 // Sell order for Lotus
                 lotusSellOrders.push_back(order);
-                std::sort(lotusSellOrders.begin(), lotusSellOrders.end(), [](const Order& a, const Order& b) {return a.Price > b.Price;});
+                std::sort(lotusSellOrders.begin(), lotusSellOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID > b.Order_ID;} return a.Price > b.Price;});
             }
         }
         if(order.Instrument == "Orchid") {
             if (order.Side == 1) {
                 // Buy order for Orchid
                 orchidBuyOrders.push_back(order);
-                std::sort(orchidBuyOrders.begin(), orchidBuyOrders.end(), [](const Order& a, const Order& b) {return a.Price < b.Price;});
+                std::sort(orchidBuyOrders.begin(), orchidBuyOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID < b.Order_ID;} return a.Price < b.Price;});
             } else if (order.Side == 2) {
                 // Sell order for Orchid
                 orchidSellOrders.push_back(order);
-                std::sort(orchidSellOrders.begin(), orchidSellOrders.end(), [](const Order& a, const Order& b) {return a.Price > b.Price;});
+                std::sort(orchidSellOrders.begin(), orchidSellOrders.end(), [](const Order& a, const Order& b) {if (a.Price == b.Price) {return a.Order_ID > b.Order_ID;} return a.Price > b.Price;});
             }
         }
     }
+
+    std::vector<Order>& getRoseBuyOrders() {
+        return roseBuyOrders;
+    }
+
+    std::vector<Order>& getRoseSellOrders() {
+        return roseSellOrders;
+    }
+    std::vector<Order>& getTulipBuyOrders() {
+        return tulipBuyOrders;
+    }
+    std::vector<Order>& getTulipSellOrders() {
+        return tulipSellOrders;
+    }
+    std::vector<Order>& getLavenderBuyOrders() {
+        return lavenderBuyOrders;
+    }   
+    std::vector<Order>& getLavenderSellOrders() {
+        return lavenderSellOrders;
+    }
+    std::vector<Order>& getLotusBuyOrders() {
+        return lotusBuyOrders;
+    }
+    std::vector<Order>& getLotusSellOrders() {
+        return lotusSellOrders;
+    }
+    std::vector<Order>& getOrchidBuyOrders() {
+        return orchidBuyOrders;
+    }
+    std::vector<Order>& getOrchidSellOrders() {
+        return orchidSellOrders;
+    }
+
+
+
 };
 
 int main() {
@@ -257,9 +293,104 @@ int main() {
                 order.Side = Side;
                 order.Quantity = Quantity;
                 order.Price = Price;
+                //order.transactiontime = 
                 
                 // Valid data, process it here
+                // size_t roseSellOrdersSize = exchange.getRoseSellOrders().size();
+                // size_t roseBuyOrdersSize = exchange.getRoseBuyOrders().size();
+                // size_t tulipSellOrdersSize = exchange.getTulipSellOrders().size();
+                // size_t tulipBuyOrdersSize = exchange.getTulipBuyOrders().size();
+                // size_t lavenderSellOrdersSize = exchange.getLavenderSellOrders().size();
+                // size_t lavenderBuyOrdersSize = exchange.getLavenderBuyOrders().size();
+                // size_t lotusSellOrdersSize = exchange.getLotusSellOrders().size();
+                // size_t lotusBuyOrdersSize = exchange.getLotusBuyOrders().size();
+                // size_t orchidSellOrdersSize = exchange.getOrchidSellOrders().size();
+                // size_t orchidBuyOrdersSize = exchange.getOrchidBuyOrders().size();
 
+                if(order.Instrument=="Rose"){
+                    if(order.Side==1){   //1=Buy, 2=Sell
+                        if(exchange.getRoseSellOrders().size() == 0){
+                            exchange.addOrder(order);
+                        }
+                        else{ // sell contains elements
+                            if(exchange.getRoseSellOrders().back().Price==order.Price){
+                                // prices matches
+                                if(exchange.getRoseSellOrders().back().Quantity==order.Quantity){
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    std::stringstream output;
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //remove the sell order
+                                    Order sold = exchange.getRoseSellOrders().back();
+                                    exchange.getRoseSellOrders().pop_back();
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    std::stringstream output;
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else if(exchange.getRoseSellOrders().back().Quantity>order.Quantity){
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    std::stringstream output;
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //change the quantity
+                                    exchange.getRoseSellOrders().back().Quantity = exchange.getRoseSellOrders().back().Quantity - order.Quantity;
+
+                                    //record to output of sell
+                                    order.status = "PFill";
+                                    std::stringstream output;
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else{ // selling quantity is less than the buying quantity
+                                    int buyingQuantity = order.Quantity;
+                                    while(buyingQuantity>0 && order.Price == exchange.getRoseSellOrders().back().Price){
+                                        //remove the sell order
+                                        Order sold = exchange.getRoseSellOrders().back();
+                                        exchange.getRoseSellOrders().pop_back();
+
+                                        //recordd to output of sell
+                                        sold.status = "Fill";
+                                        std::stringstream output;
+                                        output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                        outputFile << output.str() << std::endl;
+
+                                        //record to output of buy
+                                        order.status = "PFill";
+                                        order.Quantity = order.Quantity - sold.Quantity;
+                                        std::stringstream output;
+                                        output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << order.Price;
+                                        outputFile << output.str() << std::endl;
+
+                                        buyingQuantity = order.Quantity;
+
+
+                                    }
+                                
+
+                                }
+                            }
+                            else{
+                                exchange.addOrder(order)
+                            }
+                        }
+                    }
+                    else(order.Side==2){
+
+
+                    }
+
+                }
+
+                // same code as above for all flowers
 
 
             }
