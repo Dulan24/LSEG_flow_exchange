@@ -1,0 +1,1 @@
+if (std::getline(iss, ID, ',') && std::getline(iss, Instrument, ',') && (iss >> Side) && (iss.ignore(1, ',') || true) && (iss >> Quantity) && (iss.ignore(1, ',') || true) && (iss >> Price)) {
