@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include <stdexcept> // Include for exception handling
+
 struct RejectedExecutionReport {
     std::string orderID;
     std::string rejectionReason;
@@ -103,6 +104,21 @@ public:
     std::string status;
     std::string transactiontime;
 };
+
+
+void printorderbook(const std::vector<Order>& orders) {
+    for (const Order& order : orders) {
+        std::cout << "Order ID: " << order.Order_ID << ", ";
+        std::cout << "Client Order: " << order.Client_Order << ", ";
+        std::cout << "Instrument: " << order.Instrument << ", ";
+        std::cout << "Side: " << order.Side << ", ";
+        std::cout << "Quantity: " << order.Quantity << ", ";
+        std::cout << "Price: " << order.Price << ", ";
+        std::cout << "Status: " << order.status <<  std::endl;
+        
+    }
+    std::cout << "done" << std::endl;
+}
 
 // Define a class for managing orders
 class Exchange {
@@ -306,96 +322,754 @@ int main() {
                 // size_t lotusBuyOrdersSize = exchange.getLotusBuyOrders().size();
                 // size_t orchidSellOrdersSize = exchange.getOrchidSellOrders().size();
                 // size_t orchidBuyOrdersSize = exchange.getOrchidBuyOrders().size();
-
+                std::stringstream output;
+                // for rose
                 if(order.Instrument=="Rose"){
                     if(order.Side==1){   //1=Buy, 2=Sell
+                        
                         if(exchange.getRoseSellOrders().size() == 0){
                             exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                            printorderbook(exchange.getRoseBuyOrders());
                         }
                         else{ // sell contains elements
-                            if(exchange.getRoseSellOrders().back().Price==order.Price){
+                            while(exchange.getRoseSellOrders().back().Price <= order.Price){
                                 // prices matches
-                                if(exchange.getRoseSellOrders().back().Quantity==order.Quantity){
-                                    //record to output of buy
-                                    order.status = "Fill";
-                                    std::stringstream output;
-                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
-                                    outputFile << output.str() << std::endl;
-
+                                if(exchange.getRoseSellOrders().back().Quantity==order.Quantity){// quantity matches
                                     //remove the sell order
                                     Order sold = exchange.getRoseSellOrders().back();
                                     exchange.getRoseSellOrders().pop_back();
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
 
                                     //recordd to output of sell
                                     sold.status = "Fill";
-                                    std::stringstream output;
-                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
                                     outputFile << output.str() << std::endl;
+                                    break;
                                 }
 
-                                else if(exchange.getRoseSellOrders().back().Quantity>order.Quantity){
+                                else if(exchange.getRoseSellOrders().back().Quantity > order.Quantity){
+                                    //remove the sell order
+                                    Order sold = exchange.getRoseSellOrders().back();
+                                    exchange.getRoseSellOrders().pop_back();
+                                    // can only buy at sell order price
+                                    order.Price = sold.Price;
+                                    
                                     //record to output of buy
                                     order.status = "Fill";
-                                    std::stringstream output;
-                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
                                     outputFile << output.str() << std::endl;
 
                                     //change the quantity
                                     exchange.getRoseSellOrders().back().Quantity = exchange.getRoseSellOrders().back().Quantity - order.Quantity;
 
                                     //record to output of sell
-                                    order.status = "PFill";
-                                    std::stringstream output;
-                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
                                     outputFile << output.str() << std::endl;
                                 }
 
                                 else{ // selling quantity is less than the buying quantity
                                     int buyingQuantity = order.Quantity;
-                                    while(buyingQuantity>0 && order.Price == exchange.getRoseSellOrders().back().Price){
-                                        //remove the sell order
-                                        Order sold = exchange.getRoseSellOrders().back();
-                                        exchange.getRoseSellOrders().pop_back();
+                                    
+                                    //remove the sell order
+                                    Order sold = exchange.getRoseSellOrders().back();
+                                    exchange.getRoseSellOrders().pop_back();
 
-                                        //recordd to output of sell
-                                        sold.status = "Fill";
-                                        std::stringstream output;
-                                        output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
-                                        outputFile << output.str() << std::endl;
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
 
-                                        //record to output of buy
-                                        order.status = "PFill";
-                                        order.Quantity = order.Quantity - sold.Quantity;
-                                        std::stringstream output;
-                                        output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << order.Price;
-                                        outputFile << output.str() << std::endl;
-
-                                        buyingQuantity = order.Quantity;
-
-
-                                    }
-                                
-
+                                    //record to output of buy
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
                                 }
-                            }
-                            else{
-                                exchange.addOrder(order)
                             }
                         }
                     }
-                    else(order.Side==2){
+                    else if (order.Side==2){ // sell
+                        if(exchange.getRoseBuyOrders().size() == 0){ // no buy orders in the book
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                        }
+                        else{ // there are buy orders in the book
+                            while (exchange.getRoseBuyOrders().back().Price >= order.Price){ // price matches
+                                if (exchange.getRoseBuyOrders().back().Quantity == order.Quantity){ // quantity matches
+                                    // remove the buy order
+                                    Order sold = exchange.getRoseBuyOrders().back();
+                                    exchange.getRoseBuyOrders().pop_back();
 
+                                    // record the output of sell
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
 
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break; 
+                                }
+                                else if (exchange.getRoseBuyOrders().back().Quantity > order.Quantity){ 
+                                    // record the output of buy
+                                    Order sold = exchange.getRoseBuyOrders().back();
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    
+                                    // record the output of sell order
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // change the quantity
+                                    exchange.getRoseBuyOrders().back().Quantity = exchange.getRoseBuyOrders().back().Quantity - order.Quantity;
+                                    
+                                }
+                                else { // selling quantity is higher than buying quantity
+
+                                    // remove the buy order
+                                    Order sold = exchange.getRoseBuyOrders().back();
+                                    exchange.getRoseBuyOrders().pop_back();
+                                    
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of sell
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                                
+                            }
+                        }
                     }
-
                 }
 
-                // same code as above for all flowers
+                //for Tulip
+                else if(order.Instrument=="Tulip"){
+                    if(order.Side==1){   //1=Buy, 2=Sell
+                        
+                        if(exchange.getTulipSellOrders().size() == 0){
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                            printorderbook(exchange.getTulipBuyOrders());
+                        }
+                        else{ // sell contains elements
+                            while(exchange.getTulipSellOrders().back().Price <= order.Price){
+                                // prices matches
+                                if(exchange.getTulipSellOrders().back().Quantity==order.Quantity){// quantity matches
+                                    //remove the sell order
+                                    Order sold = exchange.getTulipSellOrders().back();
+                                    exchange.getTulipSellOrders().pop_back();
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break;
+                                }
+
+                                else if(exchange.getTulipSellOrders().back().Quantity > order.Quantity){
+                                    //remove the sell order
+                                    Order sold = exchange.getTulipSellOrders().back();
+                                    exchange.getTulipSellOrders().pop_back();
+                                    // can only buy at sell order price
+                                    order.Price = sold.Price;
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //change the quantity
+                                    exchange.getTulipSellOrders().back().Quantity = exchange.getTulipSellOrders().back().Quantity - order.Quantity;
+
+                                    //record to output of sell
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else{ // selling quantity is less than the buying quantity
+                                    int buyingQuantity = order.Quantity;
+                                    
+                                    //remove the sell order
+                                    Order sold = exchange.getTulipSellOrders().back();
+                                    exchange.getTulipSellOrders().pop_back();
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //record to output of buy
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                            }
+                        }
+                    }
+                    else if (order.Side==2){ // sell
+                        if(exchange.getTulipBuyOrders().size() == 0){ // no buy orders in the book
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                        }
+                        else{ // there are buy orders in the book
+                            while (exchange.getTulipBuyOrders().back().Price >= order.Price){ // price matches
+                                if (exchange.getTulipBuyOrders().back().Quantity == order.Quantity){ // quantity matches
+                                    // remove the buy order
+                                    Order sold = exchange.getTulipBuyOrders().back();
+                                    exchange.getTulipBuyOrders().pop_back();
+
+                                    // record the output of sell
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break; 
+                                }
+                                else if (exchange.getTulipBuyOrders().back().Quantity > order.Quantity){ 
+                                    // record the output of buy
+                                    Order sold = exchange.getTulipBuyOrders().back();
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    
+                                    // record the output of sell order
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // change the quantity
+                                    exchange.getTulipBuyOrders().back().Quantity = exchange.getTulipBuyOrders().back().Quantity - order.Quantity;
+                                    
+                                }
+                                else { // selling quantity is higher than buying quantity
+
+                                    // remove the buy order
+                                    Order sold = exchange.getTulipBuyOrders().back();
+                                    exchange.getTulipBuyOrders().pop_back();
+                                    
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of sell
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+
+                //for Lavender
+                else if(order.Instrument=="Lavender"){
+                    if(order.Side==1){   //1=Buy, 2=Sell
+                        
+                        if(exchange.getLavenderSellOrders().size() == 0){
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                            printorderbook(exchange.getLavenderBuyOrders());
+                        }
+                        else{ // sell contains elements
+                            while(exchange.getLavenderSellOrders().back().Price <= order.Price){
+                                // prices matches
+                                if(exchange.getLavenderSellOrders().back().Quantity==order.Quantity){// quantity matches
+                                    //remove the sell order
+                                    Order sold = exchange.getLavenderSellOrders().back();
+                                    exchange.getLavenderSellOrders().pop_back();
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break;
+                                }
+
+                                else if(exchange.getLavenderSellOrders().back().Quantity > order.Quantity){
+                                    //remove the sell order
+                                    Order sold = exchange.getLavenderSellOrders().back();
+                                    exchange.getLavenderSellOrders().pop_back();
+                                    // can only buy at sell order price
+                                    order.Price = sold.Price;
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //change the quantity
+                                    exchange.getLavenderSellOrders().back().Quantity = exchange.getLavenderSellOrders().back().Quantity - order.Quantity;
+
+                                    //record to output of sell
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else{ // selling quantity is less than the buying quantity
+                                    int buyingQuantity = order.Quantity;
+                                    
+                                    //remove the sell order
+                                    Order sold = exchange.getLavenderSellOrders().back();
+                                    exchange.getLavenderSellOrders().pop_back();
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //record to output of buy
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                            }
+                        }
+                    }
+                    else if (order.Side==2){ // sell
+                        if(exchange.getLavenderBuyOrders().size() == 0){ // no buy orders in the book
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                        }
+                        else{ // there are buy orders in the book
+                            while (exchange.getLavenderBuyOrders().back().Price >= order.Price){ // price matches
+                                if (exchange.getLavenderBuyOrders().back().Quantity == order.Quantity){ // quantity matches
+                                    // remove the buy order
+                                    Order sold = exchange.getLavenderBuyOrders().back();
+                                    exchange.getLavenderBuyOrders().pop_back();
+
+                                    // record the output of sell
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break; 
+                                }
+                                else if (exchange.getLavenderBuyOrders().back().Quantity > order.Quantity){ 
+                                    // record the output of buy
+                                    Order sold = exchange.getLavenderBuyOrders().back();
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    
+                                    // record the output of sell order
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // change the quantity
+                                    exchange.getLavenderBuyOrders().back().Quantity = exchange.getLavenderBuyOrders().back().Quantity - order.Quantity;
+                                    
+                                }
+                                else { // selling quantity is higher than buying quantity
+
+                                    // remove the buy order
+                                    Order sold = exchange.getLavenderBuyOrders().back();
+                                    exchange.getLavenderBuyOrders().pop_back();
+                                    
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of sell
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+
+                //for Lotus
+                else if(order.Instrument=="Lotus"){
+                    if(order.Side==1){   //1=Buy, 2=Sell
+                        
+                        if(exchange.getLotusSellOrders().size() == 0){
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                            printorderbook(exchange.getLotusBuyOrders());
+                        }
+                        else{ // sell contains elements
+                            while(exchange.getLotusSellOrders().back().Price <= order.Price){
+                                // prices matches
+                                if(exchange.getLotusSellOrders().back().Quantity==order.Quantity){// quantity matches
+                                    //remove the sell order
+                                    Order sold = exchange.getLotusSellOrders().back();
+                                    exchange.getLotusSellOrders().pop_back();
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break;
+                                }
+
+                                else if(exchange.getLotusSellOrders().back().Quantity > order.Quantity){
+                                    //remove the sell order
+                                    Order sold = exchange.getLotusSellOrders().back();
+                                    exchange.getLotusSellOrders().pop_back();
+                                    // can only buy at sell order price
+                                    order.Price = sold.Price;
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //change the quantity
+                                    exchange.getLotusSellOrders().back().Quantity = exchange.getLotusSellOrders().back().Quantity - order.Quantity;
+
+                                    //record to output of sell
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else{ // selling quantity is less than the buying quantity
+                                    int buyingQuantity = order.Quantity;
+                                    
+                                    //remove the sell order
+                                    Order sold = exchange.getLotusSellOrders().back();
+                                    exchange.getLotusSellOrders().pop_back();
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //record to output of buy
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                            }
+                        }
+                    }
+                    else if (order.Side==2){ // sell
+                        if(exchange.getLotusBuyOrders().size() == 0){ // no buy orders in the book
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                        }
+                        else{ // there are buy orders in the book
+                            while (exchange.getLotusBuyOrders().back().Price >= order.Price){ // price matches
+                                if (exchange.getLotusBuyOrders().back().Quantity == order.Quantity){ // quantity matches
+                                    // remove the buy order
+                                    Order sold = exchange.getLotusBuyOrders().back();
+                                    exchange.getLotusBuyOrders().pop_back();
+
+                                    // record the output of sell
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break; 
+                                }
+                                else if (exchange.getLotusBuyOrders().back().Quantity > order.Quantity){ 
+                                    // record the output of buy
+                                    Order sold = exchange.getLotusBuyOrders().back();
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    
+                                    // record the output of sell order
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // change the quantity
+                                    exchange.getLotusBuyOrders().back().Quantity = exchange.getLotusBuyOrders().back().Quantity - order.Quantity;
+                                    
+                                }
+                                else { // selling quantity is higher than buying quantity
+
+                                    // remove the buy order
+                                    Order sold = exchange.getLotusBuyOrders().back();
+                                    exchange.getLotusBuyOrders().pop_back();
+                                    
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of sell
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+
+                //for Orchid
+                else if(order.Instrument=="Orchid"){
+                    if(order.Side==1){   //1=Buy, 2=Sell
+                        
+                        if(exchange.getOrchidSellOrders().size() == 0){
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                            printorderbook(exchange.getOrchidBuyOrders());
+                        }
+                        else{ // sell contains elements
+                            while(exchange.getOrchidSellOrders().back().Price <= order.Price){
+                                // prices matches
+                                if(exchange.getOrchidSellOrders().back().Quantity==order.Quantity){// quantity matches
+                                    //remove the sell order
+                                    Order sold = exchange.getOrchidSellOrders().back();
+                                    exchange.getOrchidSellOrders().pop_back();
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break;
+                                }
+
+                                else if(exchange.getOrchidSellOrders().back().Quantity > order.Quantity){
+                                    //remove the sell order
+                                    Order sold = exchange.getOrchidSellOrders().back();
+                                    exchange.getOrchidSellOrders().pop_back();
+                                    // can only buy at sell order price
+                                    order.Price = sold.Price;
+                                    
+                                    //record to output of buy
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //change the quantity
+                                    exchange.getOrchidSellOrders().back().Quantity = exchange.getOrchidSellOrders().back().Quantity - order.Quantity;
+
+                                    //record to output of sell
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+
+                                else{ // selling quantity is less than the buying quantity
+                                    int buyingQuantity = order.Quantity;
+                                    
+                                    //remove the sell order
+                                    Order sold = exchange.getOrchidSellOrders().back();
+                                    exchange.getOrchidSellOrders().pop_back();
+
+                                    //recordd to output of sell
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    //record to output of buy
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                            }
+                        }
+                    }
+                    else if (order.Side==2){ // sell
+                        if(exchange.getOrchidBuyOrders().size() == 0){ // no buy orders in the book
+                            exchange.addOrder(order);
+                            order.status = "New";
+                            output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << order.Price;
+                            outputFile << output.str() << std::endl;
+                        }
+                        else{ // there are buy orders in the book
+                            while (exchange.getOrchidBuyOrders().back().Price >= order.Price){ // price matches
+                                if (exchange.getOrchidBuyOrders().back().Quantity == order.Quantity){ // quantity matches
+                                    // remove the buy order
+                                    Order sold = exchange.getOrchidBuyOrders().back();
+                                    exchange.getOrchidBuyOrders().pop_back();
+
+                                    // record the output of sell
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    break; 
+                                }
+                                else if (exchange.getOrchidBuyOrders().back().Quantity > order.Quantity){ 
+                                    // record the output of buy
+                                    Order sold = exchange.getOrchidBuyOrders().back();
+                                    sold.status = "PFill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                    
+                                    // record the output of sell order
+                                    order.status = "Fill";
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << order.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // change the quantity
+                                    exchange.getOrchidBuyOrders().back().Quantity = exchange.getOrchidBuyOrders().back().Quantity - order.Quantity;
+                                    
+                                }
+                                else { // selling quantity is higher than buying quantity
+
+                                    // remove the buy order
+                                    Order sold = exchange.getOrchidBuyOrders().back();
+                                    exchange.getOrchidBuyOrders().pop_back();
+                                    
+                                    // record the output of buy
+                                    sold.status = "Fill";
+                                    output.str("");
+                                    output << sold.Order_ID << "," << sold.Client_Order << "," << sold.Instrument << "," << sold.Side << "," << sold.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+
+                                    // record the output of sell
+                                    order.status = "PFill";
+                                    order.Quantity = order.Quantity - sold.Quantity;
+                                    output.str("");
+                                    output << order.Order_ID << "," << order.Client_Order << "," << order.Instrument << "," << order.Side << "," << order.status << "," << sold.Quantity << "," << sold.Price;
+                                    outputFile << output.str() << std::endl;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
 
 
-            }
+            }    
 
-        } 
+                
+
+
+        }
         else {
             order.status = "Rejected";
             rejectionReport.rejectionReason = "Invalid order details or missing fields";

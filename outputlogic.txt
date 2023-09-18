@@ -1,0 +1,53 @@
+buy order
+	buying price >= selling price
+		buying quantity = selling quantity
+			buystatus = full
+			buyprice = sellprice
+			buyquantity = buyquantity
+			sellstatus = full
+			sellprice = sellprice
+			sellquantity = buyquantity
+		selling quantity > buying quantity
+			buystatus = full
+			buyprice = sellprice
+			buyquantity = buyquantity
+			sellstatus = pfill
+			sellprice = sellprice
+			sellquantity = buyquantity
+		selling quantity < buying quantity
+			buystatus = pfill
+			buyprice = sellprice
+			buyquantity = sellquantity
+			sellstatus = fill
+			sellprice = sellprice
+			sellquantity = sellquantity
+	buying price < selling price
+		addorder
+
+sell order
+	selling price > buying price
+		addorder
+	selling price <= buying price
+		buying quantity = selling quantity
+			buystatus = fill
+			buyprice = buyprice
+			buyquantity = sellquantity
+			sellstatus = fill
+			sellprice = buyprice
+			sellquantity = sellquantity
+		buying quantity > selling quantity
+			buystatus = pfill
+			buyprice = buyprice
+			buyquantity = sellquantity
+			sellstatus = fill
+			sellprice = buyprice
+			sellquantity = sellquantity
+		buying quantity < selling quantity
+			buystatus = fill
+			buyprice = buyprice
+			buyquantity = buyquantity
+			sellstatus = pfill
+			sellprice = buyprice
+			sellquantity = buyquantity
+			
+		
